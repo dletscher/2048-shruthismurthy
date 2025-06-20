@@ -11,7 +11,7 @@ class Player(BasePlayer):
         self._childCount = 0
         self._depthCount = 0
         self._count = 0
-        self.fixedDepth = 4
+        self.fixedDepth = 3
 
     def findMove(self, state):
         self._count += 1
