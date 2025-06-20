@@ -81,7 +81,7 @@ class Player(BasePlayer):
         empty_tiles = sum(1 for val in board if val == 0)
         max_tile = max(board)
         corner_score = 0
-        monotonicity = 0
+        consistency = 0
         smoothness = 0
 
         corners = [grid[0][0], grid[0][-1], grid[-1][0], grid[-1][-1]]
@@ -93,14 +93,14 @@ class Player(BasePlayer):
         for row in grid:
             for i in range(size - 1):
                 if row[i] >= row[i + 1]:
-                    monotonicity += 1
+                    consistency += 1
 
         for col in range(size):
             for i in range(size - 1):
                 if grid[i][col] >= grid[i + 1][col]:
-                    monotonicity += 1
+                    consistency += 1
 
-        monotonicity_score = monotonicity * 10
+        consistency_score = consistency * 10
 
         for i in range(size):
             for j in range(size - 1):
@@ -111,7 +111,7 @@ class Player(BasePlayer):
             state.getScore()
             + empty_score
             + corner_score
-            + monotonicity_score
+            + consistency_score
             + smoothness * 0.1
         )
 
