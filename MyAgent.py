@@ -127,7 +127,7 @@ class Player(BasePlayer):
         )
 
     def moveOrder(self, state):
-        return [a for a in 'RUDL' if a in state.actions()]
+        return [a for a in 'ULDR' if a in state.actions()]
 
     def stats(self):
         print(f'Average depth: {self._depthCount/self._count:.2f}')
