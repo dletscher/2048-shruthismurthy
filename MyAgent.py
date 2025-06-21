@@ -10,7 +10,7 @@ class Player(BasePlayer):
         self._childCount = 0
         self._depthCount = 0
         self._count = 0
-        self.fixedDepth = 3
+        self.fixedDepth = 4
 
     def findMove(self, state):
         self._count += 1
@@ -19,17 +19,16 @@ class Player(BasePlayer):
         self._depthCount += 1
         self._parentCount += 1
         self._nodeCount += 1
-        print('Search depth', depth)
         best = -math.inf
         bestMove = None
 
         for a in actions:
             result = state.move(a)
-            if not self.timeRemaining():
-                break
+            if result is None or not self.timeRemaining():
+                continue
             v = self.expectiPlayer(result, depth - 1)
             if v is None:
-                break
+                continue
             if v > best:
                 best = v
                 bestMove = a
@@ -38,7 +37,6 @@ class Player(BasePlayer):
             bestMove = random.choice(actions)
 
         self.setMove(bestMove)
-        print('\tBest value', best, bestMove)
 
     def maxPlayer(self, state, depth):
         self._nodeCount += 1
@@ -50,12 +48,12 @@ class Player(BasePlayer):
         self._parentCount += 1
         best = -math.inf
         for a in self.moveOrder(state):
-            if not self.timeRemaining():
-                return None
             result = state.move(a)
+            if result is None or not self.timeRemaining():
+                continue
             v = self.expectiPlayer(result, depth - 1)
             if v is None:
-                return None
+                continue
             best = max(best, v)
         return best
 
@@ -76,6 +74,8 @@ class Player(BasePlayer):
         for index in empty_indices:
             for value, prob in [(1, 0.9), (2, 0.1)]:
                 result = state.addTile(index, value)
+                if result is None:
+                    continue
                 v = self.maxPlayer(result, depth - 1)
                 if v is None:
                     return None
