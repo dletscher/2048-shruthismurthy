@@ -95,7 +95,7 @@ class Player(BasePlayer):
         smoothness = 0
         corners = [grid[0][0], grid[0][-1], grid[-1][0], grid[-1][-1]]
         if max_tile in corners:
-            corner_score += (2 ** max_tile) * 2.0
+            corner_score += (4 ** max_tile) * 2.0
 
         empty_score = empty_tiles * 270
 
