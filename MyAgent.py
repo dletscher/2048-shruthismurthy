@@ -121,7 +121,7 @@ class Player(BasePlayer):
             + empty_score
             + corner_score
             + consistency_score
-            + smoothness * 0.2
+            + smoothness * 0.1
         )
 
     def moveOrder(self, state):
