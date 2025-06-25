@@ -109,7 +109,7 @@ class Player(BasePlayer):
                 if grid[i][col] >= grid[i + 1][col]:
                     consistency += 1
 
-        consistency_score = consistency * 47
+        consistency_score = consistency * 50
 
         for i in range(size):
             for j in range(size - 1):
@@ -125,7 +125,7 @@ class Player(BasePlayer):
         )
 
     def moveOrder(self, state):
-        return [a for a in 'LURD' if a in state.actions()]
+        return [a for a in 'ULRD' if a in state.actions()]
 
     def stats(self):
         print(f'Average depth: {self._depthCount/self._count:.2f}')
