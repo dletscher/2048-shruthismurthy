@@ -109,7 +109,7 @@ class Player(BasePlayer):
                 if grid[i][col] >= grid[i + 1][col]:
                     consistency += 1
 
-        consistency_score = consistency * 50
+        consistency_score = consistency * 49
 
         for i in range(size):
             for j in range(size - 1):
