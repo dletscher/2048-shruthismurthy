@@ -10,39 +10,47 @@ class Player(BasePlayer):
         self._childCount = 0
         self._depthCount = 0
         self._count = 0
-        self.move = None  
+        self.move = None
 
     def findMove(self, state):
         self._count += 1
-        empty = sum(1 for val in state._board if val == 0)
-        depth = 3 if empty >= 6 else 2
-
-        self._depthCount += 1
-        self._parentCount += 1
-        self._nodeCount += 1
-        print('Search depth', depth)
-
-        best = -math.inf
         bestMove = None
+        bestScore = -math.inf
+        depth = 2
 
-        for a in self.moveOrder(state):
-            result = state.move(a)
-            if not self.timeRemaining():
-                break
-            v = self.expectiPlayer(result, depth - 1)
-            if v is None:
-                break
-            if v > best:
-                best = v
-                bestMove = a
+        while self.timeRemaining():
+            currentBest = None
+            currentScore = -math.inf
+            timedOut = False
+
+            for a in self.moveOrder(state):
+                result = state.move(a)
+                if not self.timeRemaining():
+                    timedOut = True
+                    break
+                v = self.expectiPlayer(result, depth - 1)
+                if v is None:
+                    timedOut = True
+                    break
+                if v > currentScore:
+                    currentScore = v
+                    currentBest = a
+
+            if not timedOut and currentBest is not None:
+                bestMove = currentBest
+                bestScore = currentScore
+                print(f'\tDepth {depth}: Best value so far {bestScore} -> {bestMove}')
+                depth += 1  # Try deeper
+            else:
+                break  # Time’s up or couldn't finish this level
 
         if bestMove is None:
             actions = state.actions()
             bestMove = random.choice(actions) if actions else None
+            print('\tFallback move used:', bestMove)
 
         self.setMove(bestMove)
         self.move = bestMove
-        print('\tBest value', best, bestMove)
 
     def maxPlayer(self, state, depth):
         self._nodeCount += 1
@@ -158,3 +166,6 @@ class Player(BasePlayer):
     def stats(self):
         print(f'Average depth: {self._depthCount / self._count:.2f}')
         print(f'Branching factor: {self._childCount / self._parentCount:.2f}')
+
+    def getMove(self):
+        return getattr(self, 'move', None)
