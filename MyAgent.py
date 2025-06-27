@@ -10,20 +10,22 @@ class Player(BasePlayer):
         self._childCount = 0
         self._depthCount = 0
         self._count = 0
-        self.fixedDepth = 2
+        self.move = None  
 
     def findMove(self, state):
         self._count += 1
-        actions = self.moveOrder(state)
-        depth = self.fixedDepth
+        empty = sum(1 for val in state._board if val == 0)
+        depth = 4 if empty >= 6 else 3 if empty >= 3 else 2
+
         self._depthCount += 1
         self._parentCount += 1
         self._nodeCount += 1
         print('Search depth', depth)
+
         best = -math.inf
         bestMove = None
 
-        for a in actions:
+        for a in self.moveOrder(state):
             result = state.move(a)
             if not self.timeRemaining():
                 break
@@ -35,9 +37,11 @@ class Player(BasePlayer):
                 bestMove = a
 
         if bestMove is None:
-            bestMove = random.choice(actions)
+            actions = state.actions()
+            bestMove = random.choice(actions) if actions else None
 
         self.setMove(bestMove)
+        self.move = bestMove
         print('\tBest value', best, bestMove)
 
     def maxPlayer(self, state, depth):
@@ -47,6 +51,7 @@ class Player(BasePlayer):
             return state.getScore()
         if depth == 0:
             return self.heuristic(state)
+
         self._parentCount += 1
         best = -math.inf
         for a in self.moveOrder(state):
@@ -66,6 +71,7 @@ class Player(BasePlayer):
             return state.getScore()
         if depth == 0:
             return self.heuristic(state)
+
         self._parentCount += 1
         expected_value = 0
         empty_indices = [i for i in range(16) if state._board[i] == 0]
@@ -85,48 +91,70 @@ class Player(BasePlayer):
 
     def heuristic(self, state):
         board = state._board
-        size = 4
-        grid = [[board[4 * i + j] for j in range(size)] for i in range(size)]
+        grid = [[board[4 * i + j] for j in range(4)] for i in range(4)]
 
         empty_tiles = sum(1 for val in board if val == 0)
         max_tile = max(board)
-        corner_score = 0
-        consistency = 0
-        smoothness = 0
-        corners = [grid[0][0], grid[0][-1], grid[-1][0], grid[-1][-1]]
-        if max_tile in corners:
-            corner_score += (2 ** max_tile) * 2.0
-
-        empty_score = empty_tiles * 270
-
-        for row in grid:
-            for i in range(size - 1):
-                if row[i] >= row[i + 1]:
-                    consistency += 1
-
-        for col in range(size):
-            for i in range(size - 1):
-                if grid[i][col] >= grid[i + 1][col]:
-                    consistency += 1
-
-        consistency_score = consistency * 50
-
-        for i in range(size):
-            for j in range(size - 1):
-                smoothness -= abs((2 ** grid[i][j] if grid[i][j] else 0) - (2 ** grid[i][j + 1] if grid[i][j + 1] else 0))
-                smoothness -= abs((2 ** grid[j][i] if grid[j][i] else 0) - (2 ** grid[j + 1][i] if grid[j + 1][i] else 0))
+        corner_bonus = 3000 if max_tile in [grid[0][0], grid[0][3], grid[3][0], grid[3][3]] else 0
+        empty_score = empty_tiles * 500
+        smoothness_score = -self._smoothness(grid) * 2
+        monotonicity_score = -self._monotonicity(grid) * 100
+        position_score = self._positionScore(grid) * 5
 
         return (
-            state.getScore()
-            + empty_score
-            + corner_score
-            + consistency_score
-            + smoothness * 0.1
+            state.getScore() +
+            empty_score +
+            corner_bonus +
+            smoothness_score +
+            monotonicity_score +
+            position_score
         )
 
+    def _smoothness(self, grid):
+        score = 0
+        for i in range(4):
+            for j in range(3):
+                a, b = grid[i][j], grid[i][j + 1]
+                if a and b:
+                    score += abs(math.log2(a) - math.log2(b))
+        for j in range(4):
+            for i in range(3):
+                a, b = grid[i][j], grid[i + 1][j]
+                if a and b:
+                    score += abs(math.log2(a) - math.log2(b))
+        return score
+
+    def _monotonicity(self, grid):
+        row_score = 0
+        col_score = 0
+        for row in grid:
+            for i in range(3):
+                row_score += abs(row[i] - row[i + 1])
+        for col in zip(*grid):
+            for i in range(3):
+                col_score += abs(col[i] - col[i + 1])
+        return row_score + col_score
+
+    def _positionScore(self, grid):
+        weights = [
+            [16, 15, 14, 13],
+            [5, 6, 7, 8],
+            [4, 3, 2, 1],
+            [0, 0, 0, 0]
+        ]
+        score = 0
+        for i in range(4):
+            for j in range(4):
+                score += grid[i][j] * weights[i][j]
+        return score
+
     def moveOrder(self, state):
-        return [a for a in 'ULRD' if a in state.actions()]
+        board = state._board
+        max_tile = max(board)
+        max_index = board.index(max_tile)
+        preferred = ['U', 'L', 'R', 'D'] if max_index in [0, 3, 12, 15] else ['L', 'U', 'R', 'D']
+        return [a for a in preferred if a in state.actions()]
 
     def stats(self):
-        print(f'Average depth: {self._depthCount/self._count:.2f}')
+        print(f'Average depth: {self._depthCount / self._count:.2f}')
         print(f'Branching factor: {self._childCount / self._parentCount:.2f}')
