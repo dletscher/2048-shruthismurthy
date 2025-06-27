@@ -40,9 +40,9 @@ class Player(BasePlayer):
                 bestMove = currentBest
                 bestScore = currentScore
                 print(f'\tDepth {depth}: Best value so far {bestScore} -> {bestMove}')
-                depth += 1  # Try deeper
+                depth += 1  
             else:
-                break  # Time’s up or couldn't finish this level
+                break
 
         if bestMove is None:
             actions = state.actions()
