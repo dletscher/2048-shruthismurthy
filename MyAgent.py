@@ -152,7 +152,7 @@ class Player(BasePlayer):
         board = state._board
         max_tile = max(board)
         max_index = board.index(max_tile)
-        preferred = ['U', 'L', 'R', 'D'] if max_index in [0, 3, 12, 15] else ['L', 'U', 'R', 'D']
+        preferred = ['U', 'L', 'D', 'R'] if max_index in [0, 3, 12, 15] else ['L', 'U', 'R', 'D']
         return [a for a in preferred if a in state.actions()]
 
     def stats(self):
