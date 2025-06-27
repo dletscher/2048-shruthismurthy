@@ -15,7 +15,7 @@ class Player(BasePlayer):
     def findMove(self, state):
         self._count += 1
         empty = sum(1 for val in state._board if val == 0)
-        depth = 4 if empty >= 6 else 3 if empty >= 3 else 2
+        depth = 3 if empty >= 6 else 2 if empty >= 3 else 1
 
         self._depthCount += 1
         self._parentCount += 1
